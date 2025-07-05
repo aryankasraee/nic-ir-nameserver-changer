@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  nic-ir-changer:
+    build: .
+    container_name: nic-ir-nameserver-changer
+    volumes:
+      # Mount the CSV file and results directory
+      - ./domains.csv:/app/domains.csv:ro
+      - ./results:/app/results
+      # Optional: Mount logs directory
+      - ./logs:/app/logs
+    environment:
+      # Set these in .env file or uncomment and set here
+      - NIC_IR_USERNAME=${NIC_IR_USERNAME}
+      - NIC_IR_PASSWORD=${NIC_IR_PASSWORD}
+      - HEADLESS_MODE=${HEADLESS_MODE:-true}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    # For debugging - remove in production
+    # ports:
+    #   - "5900:5900"  # VNC port for viewing browser
+    networks:
+      - nic-ir-network
+    # Resource limits
+    mem_limit: 1g
+    cpus: 0.5
+    # Restart policy
+    restart: unless-stopped
+
+  # Optional: VNC server for debugging (view browser actions)
+  vnc-server:
+    image: dorowu/ubuntu-desktop-lxde-vnc
+    container_name: nic-ir-vnc
+    ports:
+      - "6080:80"  # noVNC web interface
+      - "5900:5900"  # VNC port
+    environment:
+      - VNC_PASSWORD=nicir123
+    volumes:
+      - vnc-data:/home/ubuntu
+    networks:
+      - nic-ir-network
+    profiles:
+      - debug
+    mem_limit: 2g
+
+networks:
+  nic-ir-network:
+    driver: bridge
+
+volumes:
+  vnc-data:
+    driver: local
