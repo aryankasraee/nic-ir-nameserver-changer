@@ -1,19 +1,4 @@
-# Multi-stage build for optimized image size
-FROM python:3.11-slim as builder
-
-# Install build dependencies
-RUN apt-get update && apt-get install -y \
-    wget \
-    unzip \
-    curl \
-    gnupg \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy requirements and install Python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir --user -r requirements.txt
-
-# Final stage
+# Simple AMD64-only Dockerfile (most reliable)
 FROM python:3.11-slim
 
 # Build arguments for metadata
@@ -25,7 +10,6 @@ ARG REVISION
 LABEL org.opencontainers.image.created=$BUILDTIME
 LABEL org.opencontainers.image.version=$VERSION
 LABEL org.opencontainers.image.revision=$REVISION
-LABEL org.opencontainers.image.source="https://github.com/$GITHUB_REPOSITORY"
 LABEL org.opencontainers.image.title="NIC.IR Nameserver Changer"
 LABEL org.opencontainers.image.description="Automated nameserver changer for NIC.IR domains"
 LABEL org.opencontainers.image.vendor="Your Organization"
@@ -34,7 +18,7 @@ LABEL org.opencontainers.image.licenses="MIT"
 # Set working directory
 WORKDIR /app
 
-# Install runtime dependencies
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     wget \
     unzip \
@@ -48,18 +32,16 @@ RUN apt-get update && apt-get install -y \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Google Chrome
+# Install Google Chrome (AMD64 only)
 RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/googlechrome-linux-keyring.gpg \
     && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/googlechrome-linux-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google.list \
     && apt-get update \
     && apt-get install -y google-chrome-stable \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy Python packages from builder stage
-COPY --from=builder /root/.local /root/.local
-
-# Make sure scripts in .local are usable
-ENV PATH=/root/.local/bin:$PATH
+# Copy requirements and install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application files
 COPY nameserver_changer.py .

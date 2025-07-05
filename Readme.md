@@ -117,10 +117,10 @@ If your password contains special characters, use one of these methods:
 
 ```bash
 # Method 1: Double quotes with escaping
-NIC_IR_PASSWORD="Np5fvU\$\$z6B\"F&d-'"
+NIC_IR_PASSWORD="Ndawdw\$\$zfvd4B\"F&d-'"
 
 # Method 2: Single quotes (if password doesn't end with ')
-NIC_IR_PASSWORD='Np5fvU$$z6B"F&d-'
+NIC_IR_PASSWORD='Np5fvdawdw$$zfvd4B"F&d-'
 
 # Method 3: Use Docker secrets (recommended for production)
 echo 'your_password' | docker secret create nic_ir_password -

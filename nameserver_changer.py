@@ -44,8 +44,20 @@ class NICIRNameserverChanger:
             from webdriver_manager.chrome import ChromeDriverManager
             from selenium.webdriver.chrome.service import Service
             
-            service = Service(ChromeDriverManager().install())
-            self.driver = webdriver.Chrome(service=service, options=chrome_options)
+            # Detect if we're using Chromium (ARM64) or Chrome (AMD64)
+            import platform
+            arch = platform.machine().lower()
+            
+            if arch in ['aarch64', 'arm64']:
+                # Use system chromium driver for ARM64
+                chrome_options.binary_location = "/usr/bin/chromium"
+                service = Service("/usr/bin/chromedriver")
+                self.driver = webdriver.Chrome(service=service, options=chrome_options)
+            else:
+                # Use webdriver-manager for AMD64
+                service = Service(ChromeDriverManager().install())
+                self.driver = webdriver.Chrome(service=service, options=chrome_options)
+                
         except ImportError:
             # Fallback to system ChromeDriver
             self.driver = webdriver.Chrome(options=chrome_options)
